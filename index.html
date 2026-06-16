@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WC26 · Análisis & Parlays</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f6f8fa; --bg3: #eef1f4;
+    --text: #1a1a2e; --text2: #57606a; --text3: #8c959f;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --radius: 8px; --radius-lg: 12px;
+    --blue: #185FA5; --green: #3B6D11; --amber: #854F0B; --red: #A32D2D;
+    --blue-bg: #E6F1FB; --green-bg: #EAF3DE; --amber-bg: #FAEEDA; --red-bg: #FCEBEB;
+    --blue-border: #378ADD; --green-border: #97C459; --amber-border: #EF9F27; --red-border: #F09595;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --bg2: #161b22; --bg3: #21262d;
+      --text: #f0f6fc; --text2: #8b949e; --text3: #6e7681;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --blue-bg: #0c2d4a; --green-bg: #112808; --amber-bg: #2d1f05; --red-bg: #2d0c0c;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; padding: 16px; }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 20px; }
+  .header h1 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .header p { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .sec-title { font-size: 12px; color: var(--text2); margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+  .tab-row { display: flex; gap: 4px; margin-bottom: 1rem; background: var(--bg2); border-radius: var(--radius); padding: 3px; }
+  .tab-btn { flex: 1; padding: 7px 4px; border: none; background: none; border-radius: var(--radius); font-size: 12px; cursor: pointer; color: var(--text2); transition: all 0.12s; }
+  .tab-btn.active { background: var(--bg); color: var(--text); font-weight: 500; border: 0.5px solid var(--border); }
+  .match-pill { display: flex; gap: 4px; margin-bottom: 1rem; background: var(--bg2); border-radius: var(--radius); padding: 3px; }
+  .match-pill-btn { flex: 1; padding: 6px 4px; border: none; background: none; border-radius: var(--radius); font-size: 11px; cursor: pointer; color: var(--text2); text-align: center; line-height: 1.3; transition: all 0.12s; }
+  .match-pill-btn.active { background: var(--bg); color: var(--text); font-weight: 500; border: 0.5px solid var(--border); }
+  .match-header { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--border); }
+  .team-block { text-align: center; }
+  .team-flag { font-size: 28px; display: block; }
+  .team-name { font-size: 13px; font-weight: 500; color: var(--text); margin-top: 2px; }
+  .vs-box { font-size: 11px; color: var(--text2); padding: 4px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); }
+  .lam-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+  .lam-card { background: var(--bg2); border-radius: var(--radius); padding: 8px; text-align: center; }
+  .lam-val { font-size: 18px; font-weight: 500; font-family: monospace; color: var(--text); }
+  .lam-lbl { font-size: 10px; color: var(--text3); margin-top: 1px; }
+  .prob-row { margin-bottom: 10px; }
+  .prob-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .bar-track { background: var(--bg2); border-radius: 4px; height: 7px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .score-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 4px; }
+  .score-cell { background: var(--bg2); border-radius: var(--radius); padding: 7px 4px; text-align: center; }
+  .score-val { font-size: 13px; font-weight: 500; font-family: monospace; }
+  .score-pct { font-size: 10px; color: var(--text3); }
+  .ou-stat { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 10px; }
+  .ou-block { background: var(--bg2); border-radius: var(--radius); padding: 10px; text-align: center; }
+  .ou-val { font-size: 18px; font-weight: 500; color: var(--text); }
+  .ou-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+  .insight-box { border-radius: var(--radius); padding: 10px 14px; font-size: 12px; line-height: 1.7; color: var(--text2); background: var(--bg2); margin-top: 10px; }
+  .match-card { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px 14px; cursor: pointer; background: var(--bg); margin-bottom: 8px; transition: all 0.12s; }
+  .match-card:hover { border-color: var(--border2); background: var(--bg2); }
+  .match-card.sel { border: 1.5px solid var(--blue-border); background: var(--blue-bg); }
+  .mkt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mkt-btn { padding: 9px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); cursor: pointer; text-align: left; display: flex; align-items: center; gap: 7px; transition: all 0.12s; }
+  .mkt-btn:hover { border-color: var(--border2); background: var(--bg2); }
+  .mkt-btn.sel { border: 1.5px solid var(--blue-border); background: var(--blue-bg); }
+  .mkt-lbl { font-size: 12px; font-weight: 500; color: var(--text); }
+  .ou-toggle { display: flex; border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .ou-btn { flex: 1; padding: 8px; border: none; background: var(--bg); font-size: 13px; cursor: pointer; color: var(--text2); transition: background 0.12s; }
+  .ou-btn.sel { background: #378ADD; color: #fff; font-weight: 500; }
+  .edge-preview { margin-top: 10px; padding: 10px 14px; border-radius: var(--radius); font-size: 13px; background: var(--bg2); line-height: 1.7; color: var(--text); }
+  .add-btn { width: 100%; margin-top: 12px; padding: 10px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; cursor: pointer; font-weight: 500; transition: background 0.12s; }
+  .add-btn:hover { background: var(--bg2); }
+  input[type=number], input[type=text] { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 7px 10px; color: var(--text); font-size: 13px; outline: none; transition: border-color 0.12s; }
+  input[type=number]:focus, input[type=text]:focus { border-color: var(--blue-border); }
+  .leg-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .leg-row:last-child { border-bottom: none; }
+  .leg-lbl { flex: 1; font-size: 12px; line-height: 1.4; color: var(--text); }
+  .leg-odds { font-size: 12px; font-family: monospace; color: var(--text2); min-width: 48px; text-align: right; }
+  .ebadge { font-size: 11px; font-weight: 500; padding: 3px 7px; border-radius: var(--radius); min-width: 58px; text-align: center; }
+  .e-pos { background: var(--green-bg); color: var(--green); }
+  .e-neg { background: var(--red-bg); color: var(--red); }
+  .e-neu { background: var(--bg2); color: var(--text2); }
+  .rm-btn { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 18px; padding: 2px 4px; border-radius: 4px; }
+  .rm-btn:hover { background: var(--bg2); }
+  .sum-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+  .sum-card { background: var(--bg2); border-radius: var(--radius); padding: 12px; text-align: center; }
+  .sum-val { font-size: 20px; font-weight: 500; color: var(--text); }
+  .sum-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .verdict { border-radius: var(--radius); padding: 12px 14px; font-size: 13px; line-height: 1.6; }
+  .v-good { background: var(--green-bg); color: var(--green); border: 0.5px solid var(--green-border); }
+  .v-warn { background: var(--amber-bg); color: var(--amber); border: 0.5px solid var(--amber-border); }
+  .v-bad { background: var(--red-bg); color: var(--red); border: 0.5px solid var(--red-border); }
+  .group-tag { font-size: 10px; padding: 2px 6px; border-radius: var(--radius); background: var(--bg2); color: var(--text3); }
+  .stake-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+  .payout { font-size: 15px; font-weight: 500; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>⚽ WC26 · Análisis & Parlays</h1>
+    <p id="dateLabel"></p>
+  </div>
+
+  <div class="tab-row" id="mainTabs">
+    <button class="tab-btn active" onclick="switchMain('analysis')"><i class="ti ti-chart-bar"></i> Análisis</button>
+    <button class="tab-btn" onclick="switchMain('parlay')"><i class="ti ti-list-check"></i> Parlay (<span id="legCount">0</span>)</button>
+  </div>
+
+  <!-- ANALYSIS -->
+  <div id="analysisPane">
+    <div class="match-pill" id="matchPills"></div>
+    <div id="analysisContent"></div>
+  </div>
+
+  <!-- PARLAY -->
+  <div id="parlayPane" style="display:none;">
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-shield"></i> Partido</div>
+      <div id="matchCards"></div>
+      <div class="lam-grid" id="lamRowP" style="margin-top:12px;"></div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-target"></i> Tipo de apuesta</div>
+      <div class="mkt-grid" id="mktGrid"></div>
+    </div>
+    <div class="card" id="configBox" style="display:none;">
+      <div class="sec-title" id="configTitle"></div>
+      <div id="ouBlock" style="display:none;">
+        <div class="ou-toggle">
+          <button class="ou-btn sel" id="btnOver" onclick="setOU('over')">Over</button>
+          <button class="ou-btn" id="btnUnder" onclick="setOU('under')">Under</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+          <span style="font-size:13px;color:var(--text2);min-width:48px;">Línea</span>
+          <input type="number" id="lineInput" step="0.5" min="0.5" max="30" value="2.5" oninput="updatePreview()" style="width:80px;">
+          <span style="font-size:13px;color:var(--text2);" id="lineUnit">goles</span>
+        </div>
+      </div>
+      <div id="dcBlock" style="display:none;margin-bottom:4px;">
+        <div class="ou-toggle">
+          <button class="ou-btn sel" id="dc1" onclick="setDC('1X')" style="font-size:12px;">Local/Emp</button>
+          <button class="ou-btn" id="dc2" onclick="setDC('X2')" style="font-size:12px;">Emp/Visit</button>
+          <button class="ou-btn" id="dc3" onclick="setDC('12')" style="font-size:12px;">Local/Visit</button>
+        </div>
+      </div>
+      <div id="bttsBlock" style="display:none;margin-bottom:4px;">
+        <div class="ou-toggle">
+          <button class="ou-btn sel" id="bttsY" onclick="setBTTS(true)">Sí</button>
+          <button class="ou-btn" id="bttsN" onclick="setBTTS(false)">No</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+        <span style="font-size:13px;color:var(--text2);min-width:48px;">Momio</span>
+        <input type="number" id="oddsInput" placeholder="-110" step="5" oninput="updatePreview()" style="width:110px;">
+        <span style="font-size:11px;color:var(--text3);">americano</span>
+      </div>
+      <div class="edge-preview" id="edgePreview">Ingresa el momio para ver el análisis.</div>
+      <button class="add-btn" onclick="addLeg()"><i class="ti ti-plus"></i> Agregar al parlay</button>
+    </div>
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-list-check"></i> Legs</div>
+      <div id="legsList"><p style="font-size:13px;color:var(--text2);">Agrega picks arriba.</p></div>
+    </div>
+    <div class="card" id="sumSection" style="display:none;">
+      <div class="sec-title"><i class="ti ti-chart-bar"></i> Resumen</div>
+      <div class="sum-grid">
+        <div class="sum-card"><div class="sum-val" id="sOdds">—</div><div class="sum-lbl">Odds totales</div></div>
+        <div class="sum-card"><div class="sum-val" id="sProb">—</div><div class="sum-lbl">Prob. modelo</div></div>
+        <div class="sum-card"><div class="sum-val" id="sEdge">—</div><div class="sum-lbl">Edge total</div></div>
+      </div>
+      <div class="stake-row">
+        <span style="font-size:13px;color:var(--text2);">Apuesta (MXN)</span>
+        <input type="number" id="stakeIn" value="50" min="10" max="9999" step="10" style="width:90px;" oninput="updatePayout()">
+        <span class="payout" id="payoutOut"></span>
+      </div>
+      <div class="verdict" id="verdictBox" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── DATOS DEL DÍA ── actualiza este array cada mañana
+const MATCHES = [
+  {
+    id:'uru_ksa', f1:'🇺🇾', f2:'🇸🇦', t1:'Uruguay', t2:'Arabia Saudita',
+    group:'Gr. H', time:'22:00 UTC', venue:'Miami',
+    l1:0.842, l2:0.673,
+    insight:'Uruguay llega favorito claro pero con Araújo ausente y problemas logísticos (llegaron 24h antes). KSA ganó solo 1 de sus últimos 7. Ambos con presión en grupo con España.',
+    marketOdds:{win1:-215, draw:340, win2:650, over25:-110, under25:-135}
+  },
+  {
+    id:'esp_cpv', f1:'🇪🇸', f2:'🇨🇻', t1:'España', t2:'Cabo Verde',
+    group:'Gr. H', time:'19:00 UTC', venue:'Atlanta',
+    l1:1.95, l2:0.52,
+    insight:'España empató 0-0 hoy — resultado histórico para Cabo Verde. España domina en xG pero Cabo Verde demostró que puede cerrar espacios. Presión de reacción en próximos juegos.',
+    marketOdds:{win1:-350, draw:400, win2:900, over25:-130, under25:105}
+  },
+  {
+    id:'irn_nzl', f1:'🇮🇷', f2:'🇳🇿', t1:'Irán', t2:'Nueva Zelanda',
+    group:'Gr. G', time:'01:00 UTC', venue:'Los Ángeles',
+    l1:1.05, l2:0.58,
+    insight:'Partido de bajo marcador proyectado. NZL sin gol en 4 de últimos 5. Irán tiene 9 de 11 partidos en Mundiales con Under 2.5. Taremi es la gran amenaza ofensiva.',
+    marketOdds:{win1:-122, draw:240, win2:375, over25:145, under25:-175}
+  },
+];
+
+const MARKETS = [
+  {id:'win1', label:'Gana local',           icon:'ti-trophy',          cfg:'none'},
+  {id:'draw', label:'Empate',               icon:'ti-equal',           cfg:'none'},
+  {id:'win2', label:'Gana visitante',        icon:'ti-trophy',          cfg:'none'},
+  {id:'goals',   label:'Over/Under goles',    icon:'ti-ball-football',   cfg:'ou', unit:'goles',    defLine:2.5, defStep:0.5, min:0.5, max:15},
+  {id:'corners', label:'Over/Under corners',  icon:'ti-corner-up-right', cfg:'ou', unit:'corners',  defLine:9.5, defStep:0.5, min:3.5, max:25},
+  {id:'cards',   label:'Over/Under tarjetas', icon:'ti-cards',           cfg:'ou', unit:'tarjetas', defLine:3.5, defStep:0.5, min:0.5, max:12},
+  {id:'shots',   label:'Over/Under tiros',    icon:'ti-target',          cfg:'ou', unit:'tiros',    defLine:22.5,defStep:0.5, min:5,   max:60},
+  {id:'btts', label:'Ambos anotan',          icon:'ti-arrows-exchange', cfg:'btts'},
+  {id:'dc',   label:'Doble oportunidad',     icon:'ti-shield-half',     cfg:'dc'},
+];
+
+let analysisIdx=0, parlayIdx=0, selMkt=null, ouDir='over', dcSel='1X', bttsYes=true, legs=[];
+
+document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function pmf(k,lam){
+  if(lam<=0)return k===0?1:0;
+  let lp=k*Math.log(lam)-lam;
+  for(let i=1;i<=k;i++)lp-=Math.log(i);
+  return Math.exp(lp);
+}
+function buildMx(l1,l2,max=11){
+  const m=[];
+  for(let i=0;i<=max;i++){m[i]=[];for(let j=0;j<=max;j++)m[i][j]=pmf(i,l1)*pmf(j,l2);}
+  return m;
+}
+function calcWinProbs(l1,l2){
+  const mx=buildMx(l1,l2);
+  let w1=0,dr=0,w2=0;
+  for(let i=0;i<=11;i++)for(let j=0;j<=11;j++){
+    if(i>j)w1+=mx[i][j]; else if(i===j)dr+=mx[i][j]; else w2+=mx[i][j];
+  }
+  return{w1,dr,w2};
+}
+function topScores(l1,l2){
+  const mx=buildMx(l1,l2,6);
+  const s=[];
+  for(let i=0;i<=5;i++)for(let j=0;j<=5;j++)s.push({s:`${i}-${j}`,p:mx[i][j],i,j});
+  return s.sort((a,b)=>b.p-a.p).slice(0,8);
+}
+function underProb(l1,l2,line){
+  const mx=buildMx(l1,l2);
+  let p=0;
+  for(let i=0;i<=11;i++)for(let j=0;j<=11;j++)if(i+j<line)p+=mx[i][j];
+  return p;
+}
+function bttsProb(l1,l2){
+  const mx=buildMx(l1,l2);
+  let p=0;
+  for(let i=1;i<=11;i++)for(let j=1;j<=11;j++)p+=mx[i][j];
+  return p;
+}
+function a2d(o){o=parseFloat(o);if(isNaN(o))return null;return o>0?(o/100)+1:(100/Math.abs(o))+1;}
+function implP(o){const d=a2d(o);return d?1/d:null;}
+
+function edgeSpan(model,mkt){
+  if(!mkt)return '';
+  const e=(model-mkt)*100;
+  const col=e>2?'var(--green)':e<-2?'var(--red)':'var(--amber)';
+  return `<span style="color:${col};font-size:11px;margin-left:6px;">${e>0?'+':''}${e.toFixed(1)}%</span>`;
+}
+
+function renderAnalysis(){
+  const m=MATCHES[analysisIdx];
+  const{w1,dr,w2}=calcWinProbs(m.l1,m.l2);
+  const scores=topScores(m.l1,m.l2);
+  const u25=underProb(m.l1,m.l2,2.5);
+  const u15=underProb(m.l1,m.l2,1.5);
+  const btts=bttsProb(m.l1,m.l2);
+  const maxP=Math.max(w1,dr,w2);
+  const mktW1=m.marketOdds.win1?implP(m.marketOdds.win1):null;
+  const mktDr=m.marketOdds.draw?implP(m.marketOdds.draw):null;
+  const mktW2=m.marketOdds.win2?implP(m.marketOdds.win2):null;
+  const mktU25=m.marketOdds.under25?implP(m.marketOdds.under25):null;
+
+  document.getElementById('analysisContent').innerHTML=`
+    <div class="card">
+      <div class="match-header">
+        <div class="team-block"><span class="team-flag">${m.f1}</span><span class="team-name">${m.t1}</span></div>
+        <div style="text-align:center;">
+          <div class="vs-box">vs</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px;">${m.group} · ${m.time}</div>
+          <div style="font-size:10px;color:var(--text3);">${m.venue}</div>
+        </div>
+        <div class="team-block"><span class="team-flag">${m.f2}</span><span class="team-name">${m.t2}</span></div>
+      </div>
+      <div class="lam-grid">
+        <div class="lam-card"><div class="lam-val" style="color:var(--blue);">${m.l1.toFixed(3)}</div><div class="lam-lbl">λ ${m.t1.split(' ')[0]}</div></div>
+        <div class="lam-card"><div class="lam-val">${(m.l1+m.l2).toFixed(3)}</div><div class="lam-lbl">λ total xG</div></div>
+        <div class="lam-card"><div class="lam-val" style="color:var(--green);">${m.l2.toFixed(3)}</div><div class="lam-lbl">λ ${m.t2.split(' ')[0]}</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-chart-pie"></i> Probabilidades (modelo Poisson)</div>
+      ${[{label:`Gana ${m.t1}`,p:w1,mkt:mktW1,col:'#185FA5'},{label:'Empate',p:dr,mkt:mktDr,col:'#BA7517'},{label:`Gana ${m.t2}`,p:w2,mkt:mktW2,col:'#3B6D11'}].map(row=>`
+        <div class="prob-row">
+          <div class="prob-label">
+            <span>${row.label}</span>
+            <span>${(row.p*100).toFixed(1)}%${edgeSpan(row.p,row.mkt)}${row.mkt?`<span style="font-size:10px;color:var(--text3);margin-left:4px;">(mkt ${(row.mkt*100).toFixed(1)}%)</span>`:''}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(row.p/maxP*100).toFixed(1)}%;background:${row.col};"></div></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-layout-grid"></i> Marcadores más probables</div>
+      <div class="score-grid">
+        ${scores.map(s=>{const col=s.i>s.j?'var(--blue)':s.i===s.j?'var(--amber)':'var(--green)';return`<div class="score-cell" style="border:0.5px solid ${col};opacity:0.85;"><div class="score-val" style="color:${col};">${s.s}</div><div class="score-pct">${(s.p*100).toFixed(1)}%</div></div>`;}).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title"><i class="ti ti-arrows-up-down"></i> Totales</div>
+      <div class="ou-stat">
+        <div class="ou-block"><div class="ou-val">${((1-u25)*100).toFixed(1)}%</div><div class="ou-lbl">Over 2.5${mktU25?`<br><span style="font-size:9px;">mkt ${((1-mktU25)*100).toFixed(1)}%</span>`:''}</div></div>
+        <div class="ou-block"><div class="ou-val">${(u25*100).toFixed(1)}%</div><div class="ou-lbl">Under 2.5${mktU25?`<br><span style="font-size:9px;">mkt ${(mktU25*100).toFixed(1)}%</span>`:''}</div></div>
+        <div class="ou-block"><div class="ou-val">${(u15*100).toFixed(1)}%</div><div class="ou-lbl">Under 1.5</div></div>
+        <div class="ou-block"><div class="ou-val">${(btts*100).toFixed(1)}%</div><div class="ou-lbl">Ambos anotan</div></div>
+      </div>
+      <div class="insight-box">${m.insight}</div>
+    </div>`;
+}
+
+function renderMatchPills(){
+  document.getElementById('matchPills').innerHTML=MATCHES.map((m,i)=>`
+    <button class="match-pill-btn ${i===analysisIdx?'active':''}" onclick="selectAnalysis(${i})">
+      ${m.f1}${m.f2}<br><span style="font-size:10px;">${m.t1.split(' ')[0]} vs ${m.t2.split(' ')[0]}</span>
+    </button>`).join('');
+}
+function selectAnalysis(i){analysisIdx=i;renderMatchPills();renderAnalysis();}
+
+function renderMatchCards(){
+  document.getElementById('matchCards').innerHTML=MATCHES.map((m,i)=>`
+    <div class="match-card ${i===parlayIdx?'sel':''}" onclick="selectParlay(${i})">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:17px;">${m.f1}</span>
+        <span style="font-size:13px;font-weight:500;">${m.t1} vs ${m.t2}</span>
+        <span style="font-size:17px;">${m.f2}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <span class="group-tag">${m.group}</span>
+        <span style="font-size:11px;color:var(--text3);">${m.time} · ${m.venue}</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderLamP(){
+  const m=MATCHES[parlayIdx];
+  document.getElementById('lamRowP').innerHTML=`
+    <div class="lam-card"><div class="lam-val" style="color:var(--blue);">${m.l1.toFixed(3)}</div><div class="lam-lbl">λ ${m.t1.split(' ')[0]}</div></div>
+    <div class="lam-card"><div class="lam-val">${(m.l1+m.l2).toFixed(3)}</div><div class="lam-lbl">λ total</div></div>
+    <div class="lam-card"><div class="lam-val" style="color:var(--green);">${m.l2.toFixed(3)}</div><div class="lam-lbl">λ ${m.t2.split(' ')[0]}</div></div>`;
+}
+
+function renderMarkets(){
+  document.getElementById('mktGrid').innerHTML=MARKETS.map(m=>`
+    <button class="mkt-btn ${selMkt===m.id?'sel':''}" onclick="selectMkt('${m.id}')">
+      <i class="ti ${m.icon}" style="font-size:14px;flex-shrink:0;"></i>
+      <span class="mkt-lbl">${m.label}</span>
+    </button>`).join('');
+}
+
+function selectParlay(i){parlayIdx=i;selMkt=null;renderMatchCards();renderLamP();renderMarkets();document.getElementById('configBox').style.display='none';}
+
+function selectMkt(id){
+  selMkt=id;renderMarkets();
+  const m=MARKETS.find(x=>x.id===id);
+  document.getElementById('configBox').style.display='block';
+  document.getElementById('configTitle').innerHTML=`<i class="ti ${m.icon}"></i> ${m.label}`;
+  document.getElementById('ouBlock').style.display=m.cfg==='ou'?'block':'none';
+  document.getElementById('dcBlock').style.display=m.cfg==='dc'?'block':'none';
+  document.getElementById('bttsBlock').style.display=m.cfg==='btts'?'block':'none';
+  if(m.cfg==='ou'){
+    const inp=document.getElementById('lineInput');
+    inp.value=m.defLine;inp.step=m.defStep;inp.min=m.min;inp.max=m.max;
+    document.getElementById('lineUnit').textContent=m.unit;
+    setOU('over',true);
+  }
+  document.getElementById('oddsInput').value='';
+  updatePreview();
+}
+
+function setOU(dir,silent){
+  ouDir=dir;
+  document.getElementById('btnOver').classList.toggle('sel',dir==='over');
+  document.getElementById('btnUnder').classList.toggle('sel',dir==='under');
+  if(!silent)updatePreview();
+}
+function setDC(opt){
+  dcSel=opt;
+  ['dc1','dc2','dc3'].forEach((id,i)=>document.getElementById(id).classList.toggle('sel',['1X','X2','12'][i]===opt));
+  updatePreview();
+}
+function setBTTS(yes){
+  bttsYes=yes;
+  document.getElementById('bttsY').classList.toggle('sel',yes);
+  document.getElementById('bttsN').classList.toggle('sel',!yes);
+  updatePreview();
+}
+
+function modelProb(mktId){
+  const m=MATCHES[parlayIdx];
+  const l1=m.l1,l2=m.l2;
+  const mx=buildMx(l1,l2,11);
+  const line=parseFloat(document.getElementById('lineInput').value)||2.5;
+  let p=0;
+  if(mktId==='win1'){for(let i=1;i<=11;i++)for(let j=0;j<i;j++)p+=mx[i][j];}
+  else if(mktId==='draw'){for(let i=0;i<=11;i++)p+=mx[i][i];}
+  else if(mktId==='win2'){for(let j=1;j<=11;j++)for(let i=0;i<j;i++)p+=mx[i][j];}
+  else if(mktId==='goals'){for(let i=0;i<=11;i++)for(let j=0;j<=11;j++){const t=i+j;if(ouDir==='over'?t>line:t<line)p+=mx[i][j];}}
+  else if(mktId==='corners'){const lc=l1*2.8+l2*2.4;if(ouDir==='over'){for(let k=Math.ceil(line+0.01);k<=60;k++)p+=pmf(k,lc);}else{for(let k=0;k<=Math.floor(line-0.01);k++)p+=pmf(k,lc);}}
+  else if(mktId==='cards'){const lc=l1*1.4+l2*1.4+1.2;if(ouDir==='over'){for(let k=Math.ceil(line+0.01);k<=25;k++)p+=pmf(k,lc);}else{for(let k=0;k<=Math.floor(line-0.01);k++)p+=pmf(k,lc);}}
+  else if(mktId==='shots'){const ls=l1*9.5+l2*8.5;if(ouDir==='over'){for(let k=Math.ceil(line+0.01);k<=100;k++)p+=pmf(k,ls);}else{for(let k=0;k<=Math.floor(line-0.01);k++)p+=pmf(k,ls);}}
+  else if(mktId==='btts'){if(bttsYes){for(let i=1;i<=11;i++)for(let j=1;j<=11;j++)p+=mx[i][j];}else{for(let i=0;i<=11;i++)p+=mx[i][0];for(let j=1;j<=11;j++)p+=mx[0][j];}}
+  else if(mktId==='dc'){if(dcSel==='1X'){for(let i=0;i<=11;i++)for(let j=0;j<=i;j++)p+=mx[i][j];}else if(dcSel==='X2'){for(let i=0;i<=11;i++)for(let j=i;j<=11;j++)p+=mx[i][j];}else{for(let i=0;i<=11;i++)for(let j=0;j<=11;j++)if(i!==j)p+=mx[i][j];}}
+  return Math.max(0.01,Math.min(0.99,p));
+}
+
+function getLegDesc(mktId){
+  const m=MARKETS.find(x=>x.id===mktId);
+  const line=parseFloat(document.getElementById('lineInput').value)||2.5;
+  if(m.cfg==='ou')return `${ouDir==='over'?'Over':'Under'} ${line} ${m.unit}`;
+  if(m.cfg==='btts')return `Ambos anotan: ${bttsYes?'Sí':'No'}`;
+  if(m.cfg==='dc')return `Doble op: ${dcSel}`;
+  return m.label;
+}
+
+function updatePreview(){
+  if(!selMkt){document.getElementById('edgePreview').textContent='Selecciona un mercado.';return;}
+  const mp=modelProb(selMkt);
+  const imp=implP(document.getElementById('oddsInput').value);
+  const desc=getLegDesc(selMkt);
+  let html=`<strong>${desc}</strong><br>Prob. modelo: <strong>${(mp*100).toFixed(1)}%</strong>`;
+  if(imp){const e=(mp-imp)*100;const col=e>2?'var(--green)':e<-2?'var(--red)':'var(--amber)';html+=` &nbsp;·&nbsp; Prob. mercado: ${(imp*100).toFixed(1)}%&nbsp;·&nbsp;<span style="color:${col};font-weight:500;">Edge: ${e>0?'+':''}${e.toFixed(1)}%</span>`;}
+  document.getElementById('edgePreview').innerHTML=html;
+}
+
+function addLeg(){
+  if(!selMkt){alert('Selecciona un mercado');return;}
+  const odds=parseFloat(document.getElementById('oddsInput').value);
+  if(isNaN(odds)||odds===0){alert('Ingresa el momio');return;}
+  const mt=MATCHES[parlayIdx];
+  legs.push({match:`${mt.f1} ${mt.t1} vs ${mt.t2} ${mt.f2}`,desc:getLegDesc(selMkt),odds,mp:modelProb(selMkt),imp:implP(odds)});
+  document.getElementById('legCount').textContent=legs.length;
+  renderLegs();
+}
+function removeLeg(i){legs.splice(i,1);document.getElementById('legCount').textContent=legs.length;renderLegs();}
+
+function renderLegs(){
+  const list=document.getElementById('legsList');
+  if(!legs.length){list.innerHTML='<p style="font-size:13px;color:var(--text2);">Agrega picks arriba.</p>';document.getElementById('sumSection').style.display='none';return;}
+  list.innerHTML=legs.map((l,i)=>{
+    const edge=l.imp?(l.mp-l.imp)*100:null;
+    const ecls=edge===null?'e-neu':edge>2?'e-pos':edge<-2?'e-neg':'e-neu';
+    return`<div class="leg-row"><div class="leg-lbl"><span style="color:var(--text3);font-size:11px;">${l.match}</span><br>${l.desc}</div><div class="leg-odds">${l.odds>0?'+':''}${l.odds}</div><div class="ebadge ${ecls}">${edge===null?'—':`${edge>0?'+':''}${edge.toFixed(1)}%`}</div><button class="rm-btn" onclick="removeLeg(${i})">×</button></div>`;
+  }).join('');
+  document.getElementById('sumSection').style.display='block';
+  const dec=legs.reduce((a,l)=>a*(a2d(l.odds)||1),1);
+  const pMp=legs.reduce((a,l)=>a*l.mp,1);
+  const pImp=legs.reduce((a,l)=>a*(l.imp||l.mp),1);
+  const te=(pMp-pImp)*100;
+  const am=dec>=2?Math.round((dec-1)*100):Math.round(-100/(dec-1));
+  document.getElementById('sOdds').textContent=`${am>0?'+':''}${am}`;
+  document.getElementById('sProb').textContent=`${(pMp*100).toFixed(1)}%`;
+  document.getElementById('sEdge').textContent=`${te>0?'+':''}${te.toFixed(1)}%`;
+  updatePayout();
+  const bad=legs.filter(l=>l.imp&&(l.mp-l.imp)*100<-2).length;
+  const good=legs.filter(l=>l.imp&&(l.mp-l.imp)*100>2).length;
+  let vtxt,vcls;
+  if(te>4&&bad===0){vtxt=`Parlay con edge positivo (+${te.toFixed(1)}%). ${good} de ${legs.length} legs con valor real. El modelo lo respalda.`;vcls='v-good';}
+  else if(te>0&&bad<=1){vtxt=`Edge positivo pero ajustado (+${te.toFixed(1)}%). ${bad?'1 leg con valor negativo — considera quitarlo.':'Todos los legs son aceptables.'}`;vcls='v-warn';}
+  else{vtxt=`Edge negativo (${te.toFixed(1)}%). ${bad} leg(s) sobrevaluados por el mercado. El modelo no respalda este ticket.`;vcls='v-bad';}
+  const vb=document.getElementById('verdictBox');vb.textContent=vtxt;vb.className='verdict '+vcls;
+}
+
+function updatePayout(){
+  const stake=parseFloat(document.getElementById('stakeIn').value)||50;
+  const dec=legs.reduce((a,l)=>a*(a2d(l.odds)||1),1);
+  document.getElementById('payoutOut').textContent=`→ $${(stake*dec).toFixed(0)} MXN`;
+}
+
+function switchMain(tab){
+  document.getElementById('analysisPane').style.display=tab==='analysis'?'block':'none';
+  document.getElementById('parlayPane').style.display=tab==='parlay'?'block':'none';
+  document.querySelectorAll('#mainTabs .tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='analysis')||(i===1&&tab==='parlay')));
+}
+
+renderMatchPills();
+renderAnalysis();
+renderMatchCards();
+renderLamP();
+renderMarkets();
+document.getElementById('lineInput').addEventListener('input',updatePreview);
+</script>
+</body>
+</html>
